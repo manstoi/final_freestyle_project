@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List of Cities and Towns in Bulgaria</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Bulgaria Cities</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        <h1 id="pageTitle" class="text-center mb-4">List of Cities and Towns in Bulgaria</h1>
+        <p class="text-center">Select a city to see its description:</p>
+        <div class="d-flex justify-content-center mb-4">
+            <select id="citySelector" class="form-select w-50">
+                <option value="Plovdiv">Plovdiv</option>
+                <option value="Sofia">Sofia</option>
+                <option value="Burgas">Burgas</option>
+                <option value="Stara Zagora">Stara Zagora</option>
+                <option value="Pleven">Pleven</option>
+                <option value="Sliven">Sliven</option>
+                <option value="Dobrich">Dobrich</option>
+                <option value="Shumen">Shumen</option>
+                <option value="Vidin">Vidin</option>
+                <option value="Gabrovo">Gabrovo</option>
+                <option value="Kardzhali">Kardzhali</option>
+                <option value="Haskovo">Haskovo</option>
+                <option value="Targovishte">Targovishte</option>
+                <option value="Lovech">Lovech</option>
+            </select>
+        </div>
+        <div id="cities" class="text-center"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script type="text/javascript">
+        const languageCode = "en";
+        const headers = {
+            'User-Agent': 'Final Project App'
+        };
+
+        function fetchCityData(city) {
+            const requestUrl = `https://${languageCode}.wikipedia.org/w/api.php?action=query&format=json&origin=*&titles=${city}&prop=extracts|pageimages&explaintext&exsectionformat=plain&pithumbsize=500`;
+            d3.json(requestUrl).then(function(data) {
+                const pages = data.query.pages;
+                const pageId = Object.keys(pages)[0];
+                const pageContent = pages[pageId].extract;
+                const thumbnail = pages[pageId].thumbnail ? pages[pageId].thumbnail.source : null;
+
+                // Limit to the first 300 words and end on a sentence
+                const words = pageContent.split(/\s+/);
+                let truncatedContent = words.slice(0, 300).join(' ');
+                const lastSentenceEnd = truncatedContent.lastIndexOf('.');
+                if (lastSentenceEnd !== -1) {
+                    truncatedContent = truncatedContent.substring(0, lastSentenceEnd + 1);
+                }
+
+                // Update the content in the 'cities' div
+                const citiesDiv = document.getElementById('cities');
+                citiesDiv.innerHTML = ''; // Clear previous content
+
+                // Add the description
+                const sectionElement = document.createElement('section');
+                sectionElement.textContent = truncatedContent;
+                sectionElement.className = "mb-4";
+                sectionElement.style.fontSize = "12px";
+                citiesDiv.appendChild(sectionElement);
+
+                // Add the image if available
+                if (thumbnail) {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = thumbnail;
+                    imgElement.alt = `${city} image`;
+                    imgElement.className = "img-fluid mb-4";
+                    imgElement.style.maxWidth = "100%";
+                    citiesDiv.appendChild(imgElement);
+                }
+
+                // Update the page title
+                document.getElementById('pageTitle').textContent = `Explore ${city}`;
+            }).catch(function(error) {
+                console.error('Error fetching data:', error);
+            });
+        }
+
+        // Event listener for the select element
+        document.getElementById('citySelector').addEventListener('change', function() {
+            const selectedCity = this.value;
+            fetchCityData(selectedCity);
+        });
+
+        // Fetch data for the default city on page load
+        fetchCityData('Plovdiv');
+    </script>
+
+</body>
+</html>
+
+
